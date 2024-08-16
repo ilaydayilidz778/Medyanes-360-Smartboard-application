@@ -4,89 +4,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Akıllı Tahta Projesi</title>
-    <!-- Font Awesome CDN -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>PDF Editor with Shapes</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 
 <body>
-    <div id="container">
-        <!-- PDF Görüntüleme Alanı -->
-        <div id="pdf-container">
-            <canvas id="pdf-canvas"></canvas>
-        </div>
-
-        <!-- Araç Paneli -->
+    <div id="pdfViewerContainer">
+        <canvas id="pdfCanvas"></canvas>
         <div id="toolbar">
-            <div class="toolbox">
-                <input type="file" id="file-input" title="PDF Yükle" accept="application/pdf">
-                <label for="file-input"></label>
-                <div class="tool-group">
-                    <button id="select-pen" title="Kalem">
-                        <i class="fas fa-pen"></i>
-                        <span class="tooltip">Kalem</span>
-                    </button>
-                    <button id="select-brush" title="Fırça">
-                        <i class="fas fa-paint-brush"></i>
-                        <span class="tooltip">Fırça</span>
-                    </button>
-                </div>
-                <div class="tool-group">
-                    <button id="draw-rectangle" title="Dikdörtgen">
-                        <i class="fas fa-square"></i>
-                        <span class="tooltip">Dikdörtgen</span>
-                    </button>
-                    <button id="draw-circle" title="Daire">
-                        <i class="fas fa-circle"></i>
-                        <span class="tooltip">Daire</span>
-                    </button>
-                </div>
-                <div class="tool-group">
-                    <button id="draw-ellipse" title="Elips">
-                        <i class="fas fa-ellipsis-h"></i>
-                        <span class="tooltip">Elips</span>
-                    </button>
-                    <button id="erase" title="Sil">
-                        <i class="fas fa-eraser"></i>
-                        <span class="tooltip">Sil</span>
-                    </button>
-                </div>
-                <div class="tool-group">
-                    <button id="zoom-in" title="Yakınlaştır">
-                        <i class="fas fa-search-plus"></i>
-                        <span class="tooltip">Yakınlaştır</span>
-                    </button>
-                    <button id="zoom-out" title="Uzaklaştır">
-                        <i class="fas fa-search-minus"></i>
-                        <span class="tooltip">Uzaklaştır</span>
-                    </button>
-                </div>
-                <div class="tool-group">
-                    <button id="rotate-left" title="Sola Döndür">
-                        <i class="fas fa-undo"></i>
-                        <span class="tooltip">Sola Döndür</span>
-                    </button>
-                    <button id="rotate-right" title="Sağa Döndür">
-                        <i class="fas fa-redo"></i>
-                        <span class="tooltip">Sağa Döndür</span>
-                    </button>
-                </div>
+            <div class="toolbar-group">
+                <input type="file" id="fileInput" data-toggle="tooltip" data-placement="right" title="Upload PDF" />
+            </div>
+            <div class="toolbar-group">
+                <button id="zoomIn" class="btn btn-primary" data-toggle="tooltip" data-placement="right"
+                    title="Zoom In"><i class="fas fa-search-plus"></i></button>
+                <button id="zoomOut" class="btn btn-primary" data-toggle="tooltip" data-placement="right"
+                    title="Zoom Out"><i class="fas fa-search-minus"></i></button>
+            </div>
+            <div class="toolbar-group">
+                <button id="highlight" class="btn btn-primary" data-toggle="tooltip" data-placement="right"
+                    title="Highlight"><i class="fas fa-highlighter"></i></button>
+                <button id="colorPicker" class="btn btn-primary" data-toggle="tooltip" data-placement="right"
+                    title="Color Picker"><i class="fas fa-tint"></i></button>
+            </div>
+            <div class="toolbar-group">
+                <button id="draw" class="btn btn-primary" data-toggle="tooltip" data-placement="right" title="Draw"><i
+                        class="fas fa-pencil-alt"></i></button>
+                <button id="shape" class="btn btn-primary" data-toggle="tooltip" data-placement="right" title="Shape"><i
+                        class="fas fa-shapes"></i></button>
+            </div>
+            <div class="toolbar-group">
+                <button id="crop" class="btn btn-primary" data-toggle="tooltip" data-placement="right" title="Crop"><i
+                        class="fas fa-crop"></i></button>
+                <button id="erase" class="btn btn-primary" data-toggle="tooltip" data-placement="right" title="Erase"><i
+                        class="fas fa-eraser"></i></button>
+            </div>
+            <div class="toolbar-group">
+                <button id="save" class="btn btn-primary" data-toggle="tooltip" data-placement="right" title="Save"><i
+                        class="fas fa-save"></i></button>
             </div>
         </div>
+        <div id="pdfNavigation">
+            <button id="prevPage" class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="Previous"><i
+                    class="fas fa-chevron-left"></i></button>
+            <span id="pageInfo">Page 1 of 1</span>
+            <button id="nextPage" class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="Next"><i
+                    class="fas fa-chevron-right"></i></button>
+        </div>
     </div>
-
-    <!-- Alt Kısımda İleri Geri Butonları ve Sayfa Bilgisi -->
-    <div id="navigation">
-        <button id="prev-page"><i class="fas fa-arrow-left"></i> Geri</button>
-        <span id="page-info">1 / 1</span>
-        <button id="next-page">İleri <i class="fas fa-arrow-right"></i></button>
-    </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.2.4/fabric.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.8.162/pdf.min.js"></script>
-    <script src="script.js"></script>
-
+    <script src="scripts.js"></script>
+    <script>
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip();
+        });
+    </script>
 </body>
 
 </html>
