@@ -6,6 +6,7 @@ body {
     display: flex;
     flex-direction: column;
     height: 100vh;
+    background-color: #f0f7ff;
 }
 
 #pdfViewerContainer {
@@ -21,7 +22,7 @@ body {
 }
 
 #pdfCanvas {
-    border: 1px solid #ccc;
+    border: 1px solid transparent;
 }
 
 #toolbar {

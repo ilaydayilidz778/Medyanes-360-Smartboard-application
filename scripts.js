@@ -13,21 +13,23 @@ document.addEventListener('DOMContentLoaded', function () {
     const saveBtn = document.getElementById('save');
     const prevPageBtn = document.getElementById('prevPage');
     const nextPageBtn = document.getElementById('nextPage');
-    const rotateLeftBtn = document.getElementById('rotateLeft');
-    const rotateRightBtn = document.getElementById('rotateRight');
     const pageInfo = document.getElementById('pageInfo');
-    const lineWidthInput = document.getElementById('lineWidth');
+    const lineArrange = document.getElementById('lineWidth');
 
     let pdfDoc = null;
     let currentPage = 1;
     let zoomLevel = 1;
     let highlightColor = '#FFFF00'; // Default yellow
     let drawColor = '#000000'; // Default black
-    let lineWidth = 2; // Default line width
+    let lineWidth = 2; // Default line width for drawing
+    let eraseSize = 10; // Default erase size
     let isDrawing = false;
     let isHighlighting = false;
+    let isErasing = false;
+    let isDrawingShape = false;
     let selectedShape = null;
-    let rotation = 0; // Track rotation degree
+    let isMouseDown = false;
+    let startX, startY;
 
     async function loadPDF(url) {
         pdfDoc = await pdfjsLib.getDocument(url).promise;
@@ -36,9 +38,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function renderPage(pageNum) {
         const page = await pdfDoc.getPage(pageNum);
-        const viewport = page.getViewport({ scale: zoomLevel, rotation });
+        const viewport = page.getViewport({ scale: zoomLevel });
 
-        // Set canvas dimensions to match the original PDF page size
         pdfCanvas.width = viewport.width;
         pdfCanvas.height = viewport.height;
 
@@ -67,26 +68,16 @@ document.addEventListener('DOMContentLoaded', function () {
         renderPage(currentPage);
     });
 
-    rotateLeftBtn.addEventListener('click', () => {
-        rotation = (rotation - 90) % 360;
-        renderPage(currentPage);
-    });
-
-    rotateRightBtn.addEventListener('click', () => {
-        rotation = (rotation + 90) % 360;
-        renderPage(currentPage);
-    });
-
-    lineWidthInput.addEventListener('input', () => {
-        lineWidth = parseInt(lineWidthInput.value, 10);
-    });
-
     function deactivateAllTools() {
         isDrawing = false;
         isHighlighting = false;
+        isErasing = false;
+        isDrawingShape = false;
         selectedShape = null;
         drawBtn.classList.remove('active');
         highlightBtn.classList.remove('active');
+        eraseBtn.classList.remove('active');
+        shapeBtn.classList.remove('active');
     }
 
     highlightBtn.addEventListener('click', () => {
@@ -96,73 +87,117 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     colorPickerBtn.addEventListener('click', () => {
-        drawColor = document.getElementById('colorPickerInput').value;
+        const color = prompt('Enter highlight color (hex):', highlightColor);
+        if (color) {
+            highlightColor = color;
+        }
     });
 
     drawBtn.addEventListener('click', () => {
         deactivateAllTools();
-        isDrawing = true;
-        drawBtn.classList.add('active');
+        isDrawing = !isDrawing;
+        drawBtn.classList.toggle('active', isDrawing);
     });
 
     shapeBtn.addEventListener('click', () => {
         deactivateAllTools();
-        selectedShape = selectedShape === 'rectangle' ? 'circle' : 'rectangle';
-        shapeBtn.classList.toggle('active', selectedShape !== null);
+        isDrawingShape = !isDrawingShape;
+        shapeBtn.classList.toggle('active', isDrawingShape);
+        selectedShape = prompt('Enter shape (e.g., rectangle, circle):');
     });
 
     cropBtn.addEventListener('click', () => {
-        alert('Crop functionality not implemented.');
+        // Implement crop functionality
     });
 
     eraseBtn.addEventListener('click', () => {
-        alert('Erase functionality not implemented.');
+        deactivateAllTools();
+        isErasing = !isErasing;
+        eraseBtn.classList.toggle('active', isErasing);
     });
 
     saveBtn.addEventListener('click', () => {
-        alert('Save functionality not implemented.');
+        // Implement save functionality
     });
 
-    prevPageBtn.addEventListener('click', async () => {
+    prevPageBtn.addEventListener('click', () => {
         if (currentPage > 1) {
             currentPage--;
-            await renderPage(currentPage);
+            renderPage(currentPage);
         }
     });
 
-    nextPageBtn.addEventListener('click', async () => {
+    nextPageBtn.addEventListener('click', () => {
         if (currentPage < pdfDoc.numPages) {
             currentPage++;
-            await renderPage(currentPage);
+            renderPage(currentPage);
         }
     });
 
     pdfCanvas.addEventListener('mousedown', (e) => {
-        if (isDrawing) {
+        if (isDrawing || isHighlighting || isErasing || isDrawingShape) {
+            isMouseDown = true;
+            startX = e.offsetX;
+            startY = e.offsetY;
             ctx.beginPath();
-            ctx.moveTo(e.offsetX, e.offsetY);
+            if (isErasing) {
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.arc(startX, startY, eraseSize, 0, Math.PI * 2, false);
+                ctx.fill();
+                ctx.closePath();
+            }
         }
     });
 
     pdfCanvas.addEventListener('mousemove', (e) => {
-        if (isDrawing) {
-            ctx.lineTo(e.offsetX, e.offsetY);
-            ctx.strokeStyle = drawColor;
-            ctx.lineWidth = lineWidth; // Use the selected line width
-            ctx.stroke();
+        if (isMouseDown) {
+            if (isDrawing) {
+                ctx.lineTo(e.offsetX, e.offsetY);
+                ctx.strokeStyle = drawColor;
+                ctx.lineWidth = lineWidth; // Kullanıcı tarafından belirlenen çizgi kalınlığı
+                ctx.stroke();
+            } else if (isHighlighting) {
+                ctx.strokeStyle = highlightColor;
+                ctx.lineWidth = 5; // Sabit kalınlıkta
+                ctx.lineTo(e.offsetX, e.offsetY);
+                ctx.stroke();
+            } else if (isErasing) {
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.arc(e.offsetX, e.offsetY, eraseSize, 0, Math.PI * 2, false);
+                ctx.fill();
+            } else if (isDrawingShape) {
+                pdfCanvas.width = pdfCanvas.width; // Clear canvas
+                ctx.beginPath();
+                const width = e.offsetX - startX;
+                const height = e.offsetY - startY;
+                if (selectedShape === 'rectangle') {
+                    ctx.rect(startX, startY, width, height);
+                } else if (selectedShape === 'circle') {
+                    ctx.arc(startX, startY, Math.sqrt(width * width + height * height), 0, Math.PI * 2, false);
+                }
+                ctx.strokeStyle = drawColor;
+                ctx.lineWidth = lineWidth; // Kullanıcı tarafından belirlenen çizgi kalınlığı
+                ctx.stroke();
+            }
         }
     });
 
     pdfCanvas.addEventListener('mouseup', () => {
-        if (isDrawing) {
-            ctx.closePath();
+        if (isMouseDown) {
+            isMouseDown = false;
+            if (isDrawing || isHighlighting || isErasing || isDrawingShape) {
+                ctx.closePath();
+            }
         }
     });
 
-    pdfCanvas.addEventListener('click', (e) => {
-        if (isHighlighting) {
-            ctx.fillStyle = highlightColor;
-            ctx.fillRect(e.offsetX - 10, e.offsetY - 10, 20, 20); // Simple highlight
-        }
+    pdfCanvas.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        // Implement context menu for shapes and other interactions
+    });
+
+    lineArrange.addEventListener('input', function () {
+        lineWidth = this.value; // lineWidth değişkenini güncelle
+        document.getElementById('lineWidthValue').textContent = lineWidth;
     });
 });
