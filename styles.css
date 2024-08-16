@@ -9,16 +9,15 @@ body {
 
 #pdfViewerContainer {
     display: flex;
+    justify-content: center;
+    align-items: center;
     flex: 1;
     position: relative;
     padding: 10px;
     overflow: hidden;
 }
 
-#pdfCanvas {
-    border: 1px solid #ccc;
-    flex: 1;
-}
+#pdfCanvas {}
 
 #toolbar {
     position: absolute;

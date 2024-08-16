@@ -1,10 +1,4 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // PDF.js ve PDF-lib kütüphanelerinin yüklenip yüklenmediğini kontrol et
-    // if (!pdfjsLib || !PDFLib) {
-    //     console.error('PDF.js or PDF-lib is not loaded');
-    //     return;
-    // }
-
     const pdfCanvas = document.getElementById('pdfCanvas');
     const ctx = pdfCanvas.getContext('2d');
     const fileInput = document.getElementById('fileInput');
@@ -29,7 +23,6 @@ document.addEventListener('DOMContentLoaded', function () {
     let isDrawing = false;
     let isHighlighting = false;
     let selectedShape = null;
-    let cropStart = null;
 
     async function loadPDF(url) {
         pdfDoc = await pdfjsLib.getDocument(url).promise;
@@ -39,6 +32,8 @@ document.addEventListener('DOMContentLoaded', function () {
     async function renderPage(pageNum) {
         const page = await pdfDoc.getPage(pageNum);
         const viewport = page.getViewport({ scale: zoomLevel });
+
+        // Set canvas dimensions to match the original PDF page size
         pdfCanvas.width = viewport.width;
         pdfCanvas.height = viewport.height;
 
@@ -58,16 +53,25 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     zoomInBtn.addEventListener('click', () => {
-        zoomLevel *= 5;
+        zoomLevel *= 1.5; // Adjust zoom factor as needed
         renderPage(currentPage);
     });
 
     zoomOutBtn.addEventListener('click', () => {
-        zoomLevel /= 5;
+        zoomLevel /= 1.5; // Adjust zoom factor as needed
         renderPage(currentPage);
     });
 
+    function deactivateAllTools() {
+        isDrawing = false;
+        isHighlighting = false;
+        selectedShape = null;
+        drawBtn.classList.remove('active');
+        highlightBtn.classList.remove('active');
+    }
+
     highlightBtn.addEventListener('click', () => {
+        deactivateAllTools();
         isHighlighting = !isHighlighting;
         highlightBtn.classList.toggle('active', isHighlighting);
     });
@@ -80,11 +84,13 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     drawBtn.addEventListener('click', () => {
+        deactivateAllTools();
         isDrawing = !isDrawing;
         drawBtn.classList.toggle('active', isDrawing);
     });
 
     shapeBtn.addEventListener('click', () => {
+        deactivateAllTools();
         selectedShape = prompt('Enter shape (e.g., rectangle, circle):');
     });
 
