@@ -3,11 +3,89 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=,, initial-scale=1.0">
-    <title>Smatboard Application</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Akıllı Tahta Projesi</title>
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
+    <div id="container">
+        <!-- PDF Görüntüleme Alanı -->
+        <div id="pdf-container">
+            <canvas id="pdf-canvas"></canvas>
+        </div>
+
+        <!-- Araç Paneli -->
+        <div id="toolbar">
+            <div class="toolbox">
+                <input type="file" id="file-input" title="PDF Yükle" accept="application/pdf">
+                <label for="file-input"></label>
+                <div class="tool-group">
+                    <button id="select-pen" title="Kalem">
+                        <i class="fas fa-pen"></i>
+                        <span class="tooltip">Kalem</span>
+                    </button>
+                    <button id="select-brush" title="Fırça">
+                        <i class="fas fa-paint-brush"></i>
+                        <span class="tooltip">Fırça</span>
+                    </button>
+                </div>
+                <div class="tool-group">
+                    <button id="draw-rectangle" title="Dikdörtgen">
+                        <i class="fas fa-square"></i>
+                        <span class="tooltip">Dikdörtgen</span>
+                    </button>
+                    <button id="draw-circle" title="Daire">
+                        <i class="fas fa-circle"></i>
+                        <span class="tooltip">Daire</span>
+                    </button>
+                </div>
+                <div class="tool-group">
+                    <button id="draw-ellipse" title="Elips">
+                        <i class="fas fa-ellipsis-h"></i>
+                        <span class="tooltip">Elips</span>
+                    </button>
+                    <button id="erase" title="Sil">
+                        <i class="fas fa-eraser"></i>
+                        <span class="tooltip">Sil</span>
+                    </button>
+                </div>
+                <div class="tool-group">
+                    <button id="zoom-in" title="Yakınlaştır">
+                        <i class="fas fa-search-plus"></i>
+                        <span class="tooltip">Yakınlaştır</span>
+                    </button>
+                    <button id="zoom-out" title="Uzaklaştır">
+                        <i class="fas fa-search-minus"></i>
+                        <span class="tooltip">Uzaklaştır</span>
+                    </button>
+                </div>
+                <div class="tool-group">
+                    <button id="rotate-left" title="Sola Döndür">
+                        <i class="fas fa-undo"></i>
+                        <span class="tooltip">Sola Döndür</span>
+                    </button>
+                    <button id="rotate-right" title="Sağa Döndür">
+                        <i class="fas fa-redo"></i>
+                        <span class="tooltip">Sağa Döndür</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alt Kısımda İleri Geri Butonları ve Sayfa Bilgisi -->
+    <div id="navigation">
+        <button id="prev-page"><i class="fas fa-arrow-left"></i> Geri</button>
+        <span id="page-info">1 / 1</span>
+        <button id="next-page">İleri <i class="fas fa-arrow-right"></i></button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.2.4/fabric.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.8.162/pdf.min.js"></script>
+    <script src="script.js"></script>
 
 </body>
 
