@@ -13,16 +13,21 @@ document.addEventListener('DOMContentLoaded', function () {
     const saveBtn = document.getElementById('save');
     const prevPageBtn = document.getElementById('prevPage');
     const nextPageBtn = document.getElementById('nextPage');
+    const rotateLeftBtn = document.getElementById('rotateLeft');
+    const rotateRightBtn = document.getElementById('rotateRight');
     const pageInfo = document.getElementById('pageInfo');
+    const lineWidthInput = document.getElementById('lineWidth');
 
     let pdfDoc = null;
     let currentPage = 1;
     let zoomLevel = 1;
     let highlightColor = '#FFFF00'; // Default yellow
     let drawColor = '#000000'; // Default black
+    let lineWidth = 2; // Default line width
     let isDrawing = false;
     let isHighlighting = false;
     let selectedShape = null;
+    let rotation = 0; // Track rotation degree
 
     async function loadPDF(url) {
         pdfDoc = await pdfjsLib.getDocument(url).promise;
@@ -31,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function renderPage(pageNum) {
         const page = await pdfDoc.getPage(pageNum);
-        const viewport = page.getViewport({ scale: zoomLevel });
+        const viewport = page.getViewport({ scale: zoomLevel, rotation });
 
         // Set canvas dimensions to match the original PDF page size
         pdfCanvas.width = viewport.width;
@@ -62,6 +67,20 @@ document.addEventListener('DOMContentLoaded', function () {
         renderPage(currentPage);
     });
 
+    rotateLeftBtn.addEventListener('click', () => {
+        rotation = (rotation - 90) % 360;
+        renderPage(currentPage);
+    });
+
+    rotateRightBtn.addEventListener('click', () => {
+        rotation = (rotation + 90) % 360;
+        renderPage(currentPage);
+    });
+
+    lineWidthInput.addEventListener('input', () => {
+        lineWidth = parseInt(lineWidthInput.value, 10);
+    });
+
     function deactivateAllTools() {
         isDrawing = false;
         isHighlighting = false;
@@ -77,61 +96,51 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     colorPickerBtn.addEventListener('click', () => {
-        const color = prompt('Enter highlight color (hex):', highlightColor);
-        if (color) {
-            highlightColor = color;
-        }
+        drawColor = document.getElementById('colorPickerInput').value;
     });
 
     drawBtn.addEventListener('click', () => {
         deactivateAllTools();
-        isDrawing = !isDrawing;
-        drawBtn.classList.toggle('active', isDrawing);
+        isDrawing = true;
+        drawBtn.classList.add('active');
     });
 
     shapeBtn.addEventListener('click', () => {
         deactivateAllTools();
-        selectedShape = prompt('Enter shape (e.g., rectangle, circle):');
+        selectedShape = selectedShape === 'rectangle' ? 'circle' : 'rectangle';
+        shapeBtn.classList.toggle('active', selectedShape !== null);
     });
 
     cropBtn.addEventListener('click', () => {
-        // Implement crop functionality
+        alert('Crop functionality not implemented.');
     });
 
     eraseBtn.addEventListener('click', () => {
-        // Implement erase functionality
+        alert('Erase functionality not implemented.');
     });
 
     saveBtn.addEventListener('click', () => {
-        // Implement save functionality
+        alert('Save functionality not implemented.');
     });
 
-    prevPageBtn.addEventListener('click', () => {
+    prevPageBtn.addEventListener('click', async () => {
         if (currentPage > 1) {
             currentPage--;
-            renderPage(currentPage);
+            await renderPage(currentPage);
         }
     });
 
-    nextPageBtn.addEventListener('click', () => {
+    nextPageBtn.addEventListener('click', async () => {
         if (currentPage < pdfDoc.numPages) {
             currentPage++;
-            renderPage(currentPage);
+            await renderPage(currentPage);
         }
     });
 
-    // Drawing and highlighting on canvas
     pdfCanvas.addEventListener('mousedown', (e) => {
         if (isDrawing) {
             ctx.beginPath();
             ctx.moveTo(e.offsetX, e.offsetY);
-        } else if (isHighlighting) {
-            ctx.strokeStyle = highlightColor;
-            ctx.lineWidth = 5;
-            ctx.beginPath();
-            ctx.moveTo(e.offsetX, e.offsetY);
-        } else if (selectedShape) {
-            // Implement shape drawing based on selectedShape
         }
     });
 
@@ -139,22 +148,21 @@ document.addEventListener('DOMContentLoaded', function () {
         if (isDrawing) {
             ctx.lineTo(e.offsetX, e.offsetY);
             ctx.strokeStyle = drawColor;
-            ctx.lineWidth = 2;
-            ctx.stroke();
-        } else if (isHighlighting) {
-            ctx.lineTo(e.offsetX, e.offsetY);
+            ctx.lineWidth = lineWidth; // Use the selected line width
             ctx.stroke();
         }
     });
 
     pdfCanvas.addEventListener('mouseup', () => {
-        if (isDrawing || isHighlighting) {
+        if (isDrawing) {
             ctx.closePath();
         }
     });
 
-    pdfCanvas.addEventListener('contextmenu', (e) => {
-        e.preventDefault();
-        // Implement context menu for shapes and other interactions
+    pdfCanvas.addEventListener('click', (e) => {
+        if (isHighlighting) {
+            ctx.fillStyle = highlightColor;
+            ctx.fillRect(e.offsetX - 10, e.offsetY - 10, 20, 20); // Simple highlight
+        }
     });
 });
